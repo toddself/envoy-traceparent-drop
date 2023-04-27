@@ -31,6 +31,21 @@ resources:
                 max_number_of_annotations: 100
                 max_number_of_message_events: 100
                 max_number_of_links: 100
+        access_log:
+        - name: envoy.access_loggers.file
+          filter:
+            not_health_check_filter: {}
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+            path: access.log
+            log_format:
+              json_format:
+                start_time: '%START_TIME%'
+                method: '%REQ(:METHOD)%'
+                path: '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%'
+                protocol: '%PROTOCOL%'
+                response_code: '%RESPONSE_CODE%'
+                response_code_details: '%RESPONSE_CODE_DETAILS%'
         use_remote_address: false
         common_http_protocol_options:
           idle_timeout: 900s
