@@ -1,0 +1,17 @@
+version_info: "0"
+resources:
+- '@type': type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+  name: default
+  max_direct_response_body_size_bytes: 11300
+  virtual_hosts:
+  - name: default
+    domains:
+    - '*'
+    routes:
+    - match:
+        prefix: /test
+      route:
+        cluster: localecho
+        auto_host_rewrite: true
+      request_headers_to_remove:
+      - traceparent

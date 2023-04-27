@@ -1,0 +1,103 @@
+resources:
+- '@type': type.googleapis.com/envoy.config.listener.v3.Listener
+  name: main_listener_https
+  traffic_direction: INBOUND
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 80
+  listener_filters:
+  - name: envoy.filters.listener.tls_inspector
+    typed_config:
+      '@type': type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
+  filter_chains:
+    filters:
+    - name: envoy.filters.network.http_connection_manager
+      typed_config:
+        '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+        stat_prefix: main_https
+        codec_type: AUTO
+        tracing:
+          provider:
+            name: envoy.tracers.opencensus
+            typed_config:
+              '@type': type.googleapis.com/envoy.config.trace.v3.OpenCensusConfig
+              incoming_trace_context: TRACE_CONTEXT
+              outgoing_trace_context: TRACE_CONTEXT
+              trace_config:
+                constant_sampler:
+                  decision: 1
+                max_number_of_attributes: 100
+                max_number_of_annotations: 100
+                max_number_of_message_events: 100
+                max_number_of_links: 100
+        use_remote_address: false
+        common_http_protocol_options:
+          idle_timeout: 900s
+          headers_with_underscores_action: ALLOW
+          max_connection_duration: 900s
+          max_stream_duration: 900s
+        http2_protocol_options:
+          max_concurrent_streams: 100
+          initial_stream_window_size: 65536
+          initial_connection_window_size: 1048576
+        stream_idle_timeout: 300s
+        request_timeout: 300s
+        rds:
+          route_config_name: default
+          config_source:
+            path_config_source:
+              path: rds.yaml
+            resource_api_version: v3
+        http_filters:
+        - name: envoy.filters.http.health_check
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck
+            pass_through_mode: false
+            headers:
+            - name: :path
+              string_match:
+                exact: /_envoy/healthcheck
+        - name: envoy.filters.http.header_to_metadata
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.filters.http.header_to_metadata.v3.Config
+            request_rules:
+            - cookie: market
+              on_header_present:
+                metadata_namespace: envoy.lb.cookie
+                key: market
+                type: STRING
+              remove: false
+            - cookie: currency
+              on_header_present:
+                metadata_namespace: envoy.lb.cookie
+                key: currency
+                type: STRING
+              remove: false
+            - cookie: visitor
+              on_header_present:
+                metadata_namespace: envoy.lb.cookie
+                key: visitor
+                type: STRING
+              remove: false
+            - cookie: pathway
+              on_header_present:
+                metadata_namespace: envoy.lb.cookie
+                key: visit_id
+                type: STRING
+              remove: false
+            - cookie: info_idp
+              on_header_present:
+                metadata_namespace: envoy.lb.cookie
+                key: info_idp
+                type: STRING
+              remove: false
+            - cookie: fb_sessiontraffic
+              on_header_present:
+                metadata_namespace: envoy.lb.cookie
+                key: fb_session_traffic
+                type: STRING
+              remove: false
+        - name: envoy.filters.http.router
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router

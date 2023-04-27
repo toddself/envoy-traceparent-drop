@@ -1,0 +1,29 @@
+resources:
+- '@type': type.googleapis.com/envoy.config.cluster.v3.Cluster
+  name: localecho
+  connect_timeout: 15s
+  type: static
+  per_connection_buffer_limit_bytes: 32768
+  load_assignment:
+    cluster_name: localecho
+    endpoints:
+    - lb_endpoints:
+      - endpoint:
+          address:
+            socket_address:
+              address: 192.168.1.140
+              port_value: 8081
+- '@type': type.googleapis.com/envoy.config.cluster.v3.Cluster
+  name: main
+  connect_timeout: 15s
+  type: static
+  per_connection_buffer_limit_bytes: 32768
+  load_assignment:
+    cluster_name: main
+    endpoints:
+    - lb_endpoints:
+      - endpoint:
+          address:
+            socket_address:
+              address: 127.0.0.1
+              port_value: 8123
