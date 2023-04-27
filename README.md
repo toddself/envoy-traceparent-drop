@@ -73,3 +73,5 @@ And make a request:
   }
 }
 ```
+
+Note that `traceparent` is still there. If you leave the `x-request-id` drop in the rds.yaml file, that header will drop, but the `traceparent` will remain. 
